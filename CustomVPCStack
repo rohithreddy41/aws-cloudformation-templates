@@ -1,0 +1,93 @@
+Resources:
+
+  # Create the VPC
+  CustomVPC:
+    Type: AWS::EC2::VPC
+    Properties: 
+      CidrBlock: '10.0.0.0/16'
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-application'
+          
+  # Create subnet A
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: '10.0.0.0/24'
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 0, !GetAZs ]
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-public-subnet-a'
+      VpcId: !Ref CustomVPC
+      
+      
+      
+  # Create subnet B
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: '10.0.1.0/24'
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 1, !GetAZs ]
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-public-subnet-b'
+      VpcId: !Ref CustomVPC
+      
+      
+  # Create Internet gateway
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties: 
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-internet-gateway'
+          
+   # Attach IGW
+  AttachIGWtoVPC:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref CustomVPC  
+      
+  # Create all the routing tables
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref CustomVPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-public-rt'  
+          
+    # Add IGW to route to our tables public traffic
+  AddIGWRoutingRule:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+      
+      
+  # Subnet A association with public route table
+  AssociatePublicSubnetAWithRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetA
+      
+  # Subnet B association with public route table
+  AssociatePublicSubnetAWithRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetB  
+      
+ Outputs:
+  Subnets:
+    Value: !Join [ ",", [ !Ref Subnet1, !Ref Subnet2 ] ]
+  VpcId:
+    Value: !Ref VPC 
+  
