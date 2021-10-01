@@ -1,5 +1,8 @@
-Resources:
 
+ 
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
   # Create the VPC
   CustomVPC:
     Type: AWS::EC2::VPC
@@ -85,9 +88,10 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnetB  
       
- Outputs:
-  Subnets:
-    Value: !Join [ ",", [ !Ref Subnet1, !Ref Subnet2 ] ]
-  VpcId:
-    Value: !Ref VPC 
-  
+      
+
+   Outputs:
+     Subnets:
+       Value: !Join [ ",", [ !Ref PublicSubnetA, !Ref PublicSubnetB ] ]
+     VpcId:
+       Value: !Ref CustomVPC 
